@@ -34,6 +34,7 @@ export const loginWithToken = async (args: LoginRequest): Promise<LoginResultWit
     },
     body: JSON.stringify(args),
   });
+
   if (response && response.ok) {
     const data = await response.json();
     if (data && data.access_token) {
@@ -43,7 +44,6 @@ export const loginWithToken = async (args: LoginRequest): Promise<LoginResultWit
       }
     }
   }
-
   return {
     result: 'fail',
     access_token: null
@@ -64,13 +64,13 @@ export const getCurrentUserInfoWithToken = async (token: string): Promise<UserIn
       'Authorization': `Bearer ${ token }`
     },
   });
+
   if (response && response.ok) {
     const data = await response.json();
     if (data && data.userInfo) {
       return data.userInfo
     }
   }
-
   return null
 }
 
@@ -84,7 +84,22 @@ export const login = async (args: LoginRequest): Promise<LoginResult> => {
   // POST, `${ BASE_URL }/auth/login`을 호출하세요.
   // API Spec은 강의 자료를 참고하세요.
   // access_token 발급에 성공한 경우에는 saveAccessTokenToLocalStorage 함수를 호출하여 access_token을 localStorage에 저장하고 'success'를 반환하세요.
+  const url = `${BASE_URL}/auth/login`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(args),
+  });
 
+  if (response && response.ok) {
+    const data = await response.json();
+    if (data && data.access_token) {
+      saveAccessTokenToLocalStorage(data.access_token)
+      return 'success'
+    }
+  }
   return 'fail'
 }
 
@@ -94,6 +109,20 @@ export const getCurrentUserInfo = async (): Promise<UserInfo | null> => {
   // 로컬 스토리지에 있는 token을 getAccessTokenFromLocalStorage로 가져와서 Authorization header에 Bearer token으로 넣어주세요.
   // API Spec은 강의 자료를 참고하세요.
   // 유저 정보 조회에 성공한 경우에는 UserInfo 타입의 값을 반환하세요.
+  const url = `${BASE_URL}/profile`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ getAccessTokenFromLocalStorage() }`
+    },
+  });
 
+  if (response && response.ok) {
+    const data = await response.json();
+    if (data && data.userInfo) {
+      return data.userInfo
+    }
+  }
   return null
 }
